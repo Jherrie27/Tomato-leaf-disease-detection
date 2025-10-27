@@ -85,48 +85,58 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"⚠️ Prediction failed: {e}")
-# --- Full Disclaimer Section ---
+# --- References & Acknowledgments + Overview ---
 st.markdown("""
 ---
 
-References & Acknowledgments
-Dataset:
-Bhonde, K. (2020). Tomato Leaf Disease Dataset. Kaggle.
-https://www.kaggle.com/datasets/kaustubhb999/tomatoleaf
+## 📚 References & Acknowledgments
+**Dataset:**  
+Bhonde, K. (2020). *Tomato Leaf Disease Dataset.* Kaggle.  
+[https://www.kaggle.com/datasets/kaustubhb999/tomatoleaf](https://www.kaggle.com/datasets/kaustubhb999/tomatoleaf)
 
-Framework:
-Ultralytics YOLOv12 — https://github.com/ultralytics/ultralytics
+**Framework:**  
+Ultralytics YOLOv12 — [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
 
-Instructor: Dr. Lysa V. Comia
-Training Methodology: Provided as course material (IP protected)
-Student Work: Web deployment, UI/UX design, documentation
-Application Overview
-This application uses YOLOv12 for instance segmentation to detect and classify tomato leaf diseases.
+**Instructor:** Dr. Lysa V. Comia  
+**Training Methodology:** Provided as course material (IP protected)  
+**Student Work:** Web deployment, UI/UX design, documentation  
 
-Features
-Real-time disease detection
-Instance segmentation
-Confidence scoring
-Visual analysis
-Batch processing support
-How to use
-Upload your trained model (.pt file)
-Adjust detection parameters
-Upload tomato leaf images
-View results and analysis
-📊 Model Performance & Transparency Report
-Institution: Mapúa University
-Course: AI 2 (Artificial Intelligence 2)
-Project Type: Academic Completion Requirement
-Model Architecture: YOLOv12n-seg (Ultralytics)
+---
 
+## 🧠 Application Overview
+This application uses **YOLOv12** for instance segmentation to detect and classify tomato leaf diseases.
 
-Legal Disclaimer
-This model is provided “as-is” for educational purposes.
-Developers make no warranties regarding accuracy or suitability.
+### Features
+- Real-time disease detection  
+- Instance segmentation  
+- Confidence scoring  
+- Visual analysis  
+- Batch processing support  
+
+### How to use
+1. Upload your trained model (`.pt` file)  
+2. Adjust detection parameters  
+3. Upload tomato leaf images  
+4. View results and analysis  
+
+---
+
+## 📊 Model Performance & Transparency Report
+**Institution:** Mapúa University  
+**Course:** AI 2 (Artificial Intelligence 2)  
+**Project Type:** Academic Completion Requirement  
+**Model Architecture:** YOLOv12n-seg (Ultralytics)  
+
+---
+
+## ⚖️ Legal Disclaimer
+This model is provided *“as-is”* for educational purposes.  
+Developers make no warranties regarding accuracy or suitability.  
 Users must verify all outputs before using them in real-world decisions.
 
-Intellectual Property: Training methodology by Dr. Lysa V. Comia.
-Implementation is for academic evaluation only and may not be redistributed.
+**Intellectual Property:** Training methodology by *Dr. Lysa V. Comia*.  
+Implementation is for *academic evaluation only* and may not be redistributed.
 
-Compute Resources: Google Colab (A100 GPU, free tier)
+**Compute Resources:** Google Colab (A100 GPU, free tier)
+---
+""")
