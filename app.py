@@ -8,7 +8,7 @@ from PIL import Image
 # Streamlit Page Configuration
 st.set_page_config(page_title="Tomato Leaf Disease Detection", layout="wide")
 
-# Sidebar Info
+# Sidebar 
 st.sidebar.title("Tomato Leaf Disease Detection")
 st.sidebar.write("**Group Name:** Nold Arn")
 st.sidebar.write("**Institution:** Mapúa University")
@@ -22,7 +22,7 @@ def load_model():
 
 model = load_model()
 
-# App Title
+#Title
 st.title("🍅 Tomato Leaf Disease Detection")
 st.write("Upload a tomato leaf image below to analyze its condition.")
 
@@ -66,7 +66,6 @@ if uploaded_file is not None:
                     cv2.putText(img, label, (x1, max(y1 - 10, 0)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
-        # Convert to RGB for Streamlit display
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         st.image(img_rgb, caption="Detection Result", use_container_width=True)
 
@@ -85,7 +84,7 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"⚠️ Prediction failed: {e}")
-# --- References & Acknowledgments + Overview ---
+#App overview
 st.markdown("""
 ---
 
