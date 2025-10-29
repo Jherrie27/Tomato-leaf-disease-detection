@@ -139,4 +139,3 @@ Implementation is for *academic evaluation only* and may not be redistributed.
 **Compute Resources:** Google Colab (A100 GPU, free tier)
 ---
 """)
-
