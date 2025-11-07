@@ -5,6 +5,7 @@ import numpy as np
 import os
 from PIL import Image
 
+# Streamlit Page Configuration
 st.set_page_config(page_title="Tomato Leaf Disease Detection", layout="wide")
 
 # Sidebar 
