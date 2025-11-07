@@ -1,8 +1,12 @@
+import os
+
+os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+
 import streamlit as st
 from ultralytics import YOLO
 import cv2
 import numpy as np
-import os
 from PIL import Image
 
 # Streamlit Page Configuration
@@ -18,7 +22,12 @@ st.sidebar.write("Upload an image of a tomato leaf to detect disease using YOLOv
 # Load YOLO model (cached)
 @st.cache_resource
 def load_model():
-    return YOLO("best.pt")
+    try:
+        model = YOLO("best.pt")
+        return model
+    except Exception as e:
+        st.error(f"⚠️ Failed to load YOLO model: {e}")
+        st.stop()
 
 model = load_model()
 
@@ -44,13 +53,13 @@ if uploaded_file is not None:
     st.success("✅ File uploaded successfully!")
 
     try:
-        # Run inference
+        # Run YOLO inference
         results = model(temp_path)
 
         # Load original image
         img = cv2.imread(temp_path)
 
-        # Process detections (both masks and boxes)
+        # Process detections (masks and boxes)
         for r in results:
             # Draw segmentation masks (red overlay)
             if r.masks is not None:
