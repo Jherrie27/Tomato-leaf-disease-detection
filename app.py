@@ -21,7 +21,6 @@ import torch
 import ultralytics.nn.tasks as tasks
 import torch.nn as nn
 
-
 # ✅ PyTorch 2.6 fix for YOLOv12 models
 torch.serialization.add_safe_globals([
     tasks.SegmentationModel,
@@ -73,30 +72,32 @@ if uploaded_file is not None:
         img_np = np.array(img)
         resized_img = cv2.resize(img_np, (640, 640))
 
-        # YOLO inference
+        # YOLO inference (segmentation + detection)
         results = model.predict(resized_img, imgsz=640, conf=0.4)
+        result = results[0]
 
-        # Annotated segmentation result
-        seg_annotated = results[0].plot(boxes=False)  # segmentation only
+        # Start with segmentation visualization
+        seg_annotated = result.plot(boxes=False)  # segmentation only
         seg_annotated = cv2.cvtColor(seg_annotated, cv2.COLOR_BGR2RGB)
         seg_annotated = cv2.resize(seg_annotated, (img_np.shape[1], img_np.shape[0]))
 
-        # Draw bounding boxes and labels on top
-        if results and len(results[0].boxes) > 0:
-            for box in results[0].boxes:
+        # Draw bounding boxes + labels
+        if result and len(result.boxes) > 0:
+            for box in result.boxes:
                 cls_id = int(box.cls.cpu().numpy())
                 conf = float(box.conf.cpu().numpy())
                 label = f"{model.names[cls_id]} ({conf:.2f})"
                 xyxy = box.xyxy[0].cpu().numpy().astype(int)
                 x1, y1, x2, y2 = xyxy
                 cv2.rectangle(seg_annotated, (x1, y1), (x2, y2), (255, 0, 0), 3)
-                cv2.putText(seg_annotated, label, (x1, y1 - 10),
+                cv2.putText(seg_annotated, label, (x1, max(20, y1 - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
+        # Display combined result
         st.image(seg_annotated, caption="Detection + Segmentation Result", use_container_width=True)
 
         # List detected diseases
-        detected_classes = [model.names[int(box.cls.cpu().numpy())] for box in results[0].boxes] if results[0].boxes else []
+        detected_classes = [model.names[int(box.cls.cpu().numpy())] for box in result.boxes] if result.boxes else []
         if detected_classes:
             st.subheader("🩺 Detected Diseases:")
             for cls in set(detected_classes):
