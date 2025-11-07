@@ -2,7 +2,6 @@ import os
 
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "dummy"
 
 import streamlit as st
@@ -55,40 +54,23 @@ if uploaded_file is not None:
     st.success("✅ File uploaded successfully!")
 
     try:
-        # Run YOLO inference
-        results = model(temp_path)
+        # Load image and convert to RGB
+        img = Image.open(temp_path).convert("RGB")
+        img_np = np.array(img)
 
-        # Load original image
-        img = cv2.imread(temp_path)
+        # Resize for YOLO input (640x640 standard)
+        resized_img = cv2.resize(img_np, (640, 640))
 
-        # Process detections (masks and boxes)
-        for r in results:
-            # Draw segmentation masks (red overlay)
-            if r.masks is not None:
-                masks = r.masks.data.cpu().numpy()
-                for mask in masks:
-                    mask = mask.astype(np.uint8) * 255
-                    colored_mask = np.zeros_like(img)
-                    colored_mask[:, :, 2] = mask  # Red overlay
-                    img = cv2.addWeighted(img, 1.0, colored_mask, 0.5, 0)
+        # Run YOLO inference with explicit size
+        results = model.predict(resized_img, imgsz=640)
 
-            # Draw bounding boxes and labels
-            if r.boxes is not None:
-                boxes = r.boxes.xyxy.cpu().numpy()
-                scores = r.boxes.conf.cpu().numpy()
-                class_ids = r.boxes.cls.cpu().numpy().astype(int)
-                names = model.names
+        # Get annotated output and resize back to original size
+        annotated = results[0].plot()
+        annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
+        annotated = cv2.resize(annotated, (img_np.shape[1], img_np.shape[0]))
 
-                for box, score, cls_id in zip(boxes, scores, class_ids):
-                    x1, y1, x2, y2 = map(int, box)
-                    label = f"{names[cls_id]} ({score:.2f})"
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    cv2.putText(img, label, (x1, max(y1 - 10, 0)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-
-        # Convert to RGB for Streamlit display
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        st.image(img_rgb, caption="Detection and Segmentation Result", use_container_width=True)
+        # Show annotated image
+        st.image(annotated, caption="Detection and Segmentation Result", use_container_width=True)
 
         # Show detected classes
         detected_classes = []
