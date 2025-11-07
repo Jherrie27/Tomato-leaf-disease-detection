@@ -1,5 +1,6 @@
 import os
 
+# Environment fixes for Streamlit + OpenCV
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "dummy"
@@ -64,30 +65,38 @@ if uploaded_file is not None:
     st.success("✅ File uploaded successfully!")
 
     try:
-        # Load image and convert to RGB
+        # Load and prepare image
         img = Image.open(temp_path).convert("RGB")
         img_np = np.array(img)
-
-        # Resize for YOLO input (640x640 standard)
         resized_img = cv2.resize(img_np, (640, 640))
 
-        # Run YOLO inference with explicit size
-        results = model.predict(resized_img, imgsz=640)
+        # Run YOLO inference
+        results = model.predict(resized_img, imgsz=640, conf=0.4)
 
-        # Get annotated output and resize back to original size
+        # Prepare annotated output
         annotated = results[0].plot()
         annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
         annotated = cv2.resize(annotated, (img_np.shape[1], img_np.shape[0]))
 
-        # Show annotated image
+        detected_classes = []
+        if results and results[0].boxes is not None and len(results[0].boxes) > 0:
+            for box in results[0].boxes:
+                cls_id = int(box.cls.cpu().numpy())
+                conf = float(box.conf.cpu().numpy())
+                label = f"{model.names[cls_id]} ({conf:.2f})"
+                detected_classes.append(model.names[cls_id])
+
+                # Draw bounding box with label on the annotated image
+                xyxy = box.xyxy[0].cpu().numpy().astype(int)
+                x1, y1, x2, y2 = xyxy
+                cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                cv2.putText(annotated, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+
+        # Display annotated image
         st.image(annotated, caption="Detection and Segmentation Result", use_container_width=True)
 
-        # Show detected classes
-        detected_classes = []
-        for r in results:
-            if r.boxes is not None:
-                detected_classes.extend([model.names[int(c)] for c in r.boxes.cls.cpu().numpy()])
-
+        # Display detected diseases
         if detected_classes:
             st.subheader("🩺 Detected Diseases:")
             for cls in set(detected_classes):
@@ -123,22 +132,8 @@ This application uses **YOLOv12** for instance segmentation to detect and classi
 - Real-time disease detection  
 - Instance segmentation (colored mask overlay)  
 - Confidence scoring  
+- Bounding box labels  
 - Visual analysis  
-- Batch processing support  
-
-### How to use
-1. Upload your trained model (`.pt` file)  
-2. Adjust detection parameters  
-3. Upload tomato leaf images  
-4. View results and analysis  
-
----
-
-## 📊 Model Performance & Transparency Report
-**Institution:** Mapúa University  
-**Course:** AI 2 (Artificial Intelligence 2)  
-**Project Type:** Academic Completion Requirement  
-**Model Architecture:** YOLOv12n-seg (Ultralytics)  
 
 ---
 
@@ -149,7 +144,5 @@ Users must verify all outputs before using them in real-world decisions.
 
 **Intellectual Property:** Training methodology by *Dr. Lysa V. Comia*.  
 Implementation is for *academic evaluation only* and may not be redistributed.
-
-**Compute Resources:** Google Colab (A100 GPU, free tier)
 ---
 """)
