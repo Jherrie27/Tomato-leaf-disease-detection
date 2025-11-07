@@ -1,9 +1,5 @@
-streamlit
-ultralytics
-torch
-opencv-python-headless
-pillow
-numpy
+
+
 streamlit==1.38.0
 ultralytics==8.1.0
 torch>=2.0.0
