@@ -1,18 +1,26 @@
 import os
-
-# --- Streamlit + OpenCV fixes ---
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "dummy"
 
 import streamlit as st
+import warnings
+warnings.filterwarnings("ignore")
+
+# Import OpenCV safely
+try:
+    import cv2
+except ImportError:
+    st.error("⚠️ OpenCV failed to load. Make sure only 'opencv-python-headless' is in requirements.txt.")
+    st.stop()
+
 from ultralytics import YOLO
-import cv2
 import numpy as np
 from PIL import Image
 import torch
 import ultralytics.nn.tasks as tasks
 import torch.nn as nn
+
 
 # ✅ PyTorch 2.6 fix for YOLOv12 models
 torch.serialization.add_safe_globals([
