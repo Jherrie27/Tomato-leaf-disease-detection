@@ -22,7 +22,7 @@ def load_model():
 
 model = load_model()
 
-#Title
+# Title
 st.title("🍅 Tomato Leaf Disease Detection")
 st.write("Upload a tomato leaf image below to analyze its condition.")
 
@@ -47,12 +47,21 @@ if uploaded_file is not None:
         # Run inference
         results = model(temp_path)
 
-        # Load the original image
+        # Load original image
         img = cv2.imread(temp_path)
 
-        # Process detections
+        # Process detections (both masks and boxes)
         for r in results:
-            # Draw boxes and labels
+            # Draw segmentation masks (red overlay)
+            if r.masks is not None:
+                masks = r.masks.data.cpu().numpy()
+                for mask in masks:
+                    mask = mask.astype(np.uint8) * 255
+                    colored_mask = np.zeros_like(img)
+                    colored_mask[:, :, 2] = mask  # Red overlay
+                    img = cv2.addWeighted(img, 1.0, colored_mask, 0.5, 0)
+
+            # Draw bounding boxes and labels
             if r.boxes is not None:
                 boxes = r.boxes.xyxy.cpu().numpy()
                 scores = r.boxes.conf.cpu().numpy()
@@ -66,8 +75,9 @@ if uploaded_file is not None:
                     cv2.putText(img, label, (x1, max(y1 - 10, 0)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
+        # Convert to RGB for Streamlit display
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        st.image(img_rgb, caption="Detection Result", use_container_width=True)
+        st.image(img_rgb, caption="Detection and Segmentation Result", use_container_width=True)
 
         # Show detected classes
         detected_classes = []
@@ -84,7 +94,8 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"⚠️ Prediction failed: {e}")
-#App overview
+
+# App overview
 st.markdown("""
 ---
 
@@ -107,7 +118,7 @@ This application uses **YOLOv12** for instance segmentation to detect and classi
 
 ### Features
 - Real-time disease detection  
-- Instance segmentation  
+- Instance segmentation (colored mask overlay)  
 - Confidence scoring  
 - Visual analysis  
 - Batch processing support  
