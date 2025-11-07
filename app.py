@@ -51,7 +51,6 @@ st.write("Upload a tomato leaf image below to analyze its condition.")
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Display uploaded image
     st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
     
     # Save uploaded file safely
@@ -73,28 +72,37 @@ if uploaded_file is not None:
         # Run YOLO inference
         results = model.predict(resized_img, imgsz=640, conf=0.4)
 
-        # Prepare annotated output
-        annotated = results[0].plot()
-        annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
-        annotated = cv2.resize(annotated, (img_np.shape[1], img_np.shape[0]))
-
+        names = model.names
         detected_classes = []
-        if results and results[0].boxes is not None and len(results[0].boxes) > 0:
-            for box in results[0].boxes:
-                cls_id = int(box.cls.cpu().numpy())
-                conf = float(box.conf.cpu().numpy())
-                label = f"{model.names[cls_id]} ({conf:.2f})"
-                detected_classes.append(model.names[cls_id])
+        output_img = resized_img.copy()
 
-                # Draw bounding box with label on the annotated image
-                xyxy = box.xyxy[0].cpu().numpy().astype(int)
-                x1, y1, x2, y2 = xyxy
-                cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 0, 0), 3)
-                cv2.putText(annotated, label, (x1, y1 - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        for result in results:
+            boxes = result.boxes
+            masks = result.masks
 
-        # Display annotated image
-        st.image(annotated, caption="Detection and Segmentation Result", use_container_width=True)
+            if boxes is not None and len(boxes) > 0:
+                for i, box in enumerate(boxes):
+                    cls_id = int(box.cls[0])
+                    label = names[cls_id] if cls_id in names else f"Class {cls_id}"
+                    conf = float(box.conf[0])
+                    detected_classes.append(label)
+
+                    # --- Draw bounding box ---
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    cv2.rectangle(output_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                    cv2.putText(output_img, f"{label} ({conf:.2f})", (x1, max(y1 - 10, 20)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+                    # --- Draw segmentation mask if available ---
+                    if masks is not None and len(masks.data) > i:
+                        mask = masks.data[i].cpu().numpy()
+                        colored_mask = np.zeros_like(output_img, dtype=np.uint8)
+                        colored_mask[mask > 0.5] = [0, 255, 0]  # green mask
+                        output_img = cv2.addWeighted(output_img, 1, colored_mask, 0.4, 0)
+
+        # Resize back to original for display
+        output_img = cv2.resize(output_img, (img_np.shape[1], img_np.shape[0]))
+        st.image(output_img, caption="Detection and Segmentation Result", use_container_width=True)
 
         # Display detected diseases
         if detected_classes:
@@ -131,8 +139,8 @@ This application uses **YOLOv12** for instance segmentation to detect and classi
 ### Features
 - Real-time disease detection  
 - Instance segmentation (colored mask overlay)  
+- Bounding boxes and class labels  
 - Confidence scoring  
-- Bounding box labels  
 - Visual analysis  
 
 ---
