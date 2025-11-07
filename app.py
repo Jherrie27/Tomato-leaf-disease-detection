@@ -2,6 +2,8 @@ import os
 
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "dummy"
 
 import streamlit as st
 from ultralytics import YOLO
